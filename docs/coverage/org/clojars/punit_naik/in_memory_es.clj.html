@@ -1,0 +1,215 @@
+<html>
+ <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" href="../../../coverage.css"/>  <title> org/clojars/punit_naik/in_memory_es.clj </title>
+ </head>
+ <body>
+<span class="covered" title="1 out of 1 forms covered">
+                001&nbsp;&nbsp;(ns&nbsp;org.clojars.punit-naik.in-memory-es
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                002&nbsp;&nbsp;&nbsp;&nbsp;(:require&nbsp;[clojure.java.io&nbsp;:as&nbsp;io])
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                003&nbsp;&nbsp;&nbsp;&nbsp;(:import&nbsp;[java.util&nbsp;HashMap&nbsp;Map]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                004&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[org.elasticsearch.common.settings&nbsp;Settings]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                005&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[org.elasticsearch.node&nbsp;Node]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                006&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[org.elasticsearch.node&nbsp;NodeBuilder]))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                007&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                008&nbsp;&nbsp;(defn&nbsp;make-tmp-dir!
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                009&nbsp;&nbsp;&nbsp;&nbsp;[cluster-name&nbsp;dir-name]
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                010&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[base-dir&nbsp;(System&#x2F;getProperty&nbsp;&quot;java.io.tmpdir&quot;)
+                </span><br/>
+<span class="covered" title="8 out of 8 forms covered">
+                011&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;base-name&nbsp;(str&nbsp;(System&#x2F;currentTimeMillis)&nbsp;&quot;-&quot;&nbsp;(long&nbsp;(rand&nbsp;1000000000)))
+                </span><br/>
+<span class="covered" title="5 out of 5 forms covered">
+                012&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;custom-name&nbsp;(str&nbsp;cluster-name&nbsp;&quot;-&quot;&nbsp;dir-name)
+                </span><br/>
+<span class="covered" title="9 out of 9 forms covered">
+                013&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tmp-dir&nbsp;(io&#x2F;file&nbsp;(str&nbsp;base-dir&nbsp;&quot;&#x2F;&quot;&nbsp;base-name&nbsp;&quot;-&quot;&nbsp;custom-name))]
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                014&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.mkdir&nbsp;tmp-dir)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                015&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(str&nbsp;tmp-dir)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                016&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                017&nbsp;&nbsp;(defn&nbsp;es-cluster-config
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                018&nbsp;&nbsp;&nbsp;&nbsp;[{:keys&nbsp;[http-port&nbsp;tmp-data-dir&nbsp;tmp-logs-dir&nbsp;cluster-name&nbsp;tmp-home-dir]}]
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                019&nbsp;&nbsp;&nbsp;&nbsp;(-&gt;&nbsp;(Settings&#x2F;builder)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                020&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;http.port&quot;&nbsp;http-port)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                021&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;path.data&quot;&nbsp;tmp-data-dir)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                022&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;path.logs&quot;&nbsp;tmp-logs-dir)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                023&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;path.home&quot;&nbsp;tmp-home-dir)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                024&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;cluster.name&quot;&nbsp;cluster-name)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                025&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;index.number_of_shards&quot;&nbsp;1)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                026&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;index.number_of_replicas&quot;&nbsp;0)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                027&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;&quot;node.local&quot;&nbsp;&quot;true&quot;)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                028&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                029&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                030&nbsp;&nbsp;(defn&nbsp;create-es-node
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                031&nbsp;&nbsp;&nbsp;&nbsp;[^Settings&nbsp;settings]
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                032&nbsp;&nbsp;&nbsp;&nbsp;(try&nbsp;(-&gt;&nbsp;(NodeBuilder.)
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                033&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.settings&nbsp;settings)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                034&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.node)
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                035&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(catch&nbsp;Exception&nbsp;e&nbsp;(.getMessage&nbsp;e))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                036&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                037&nbsp;&nbsp;(defn&nbsp;start-es-cluster
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                038&nbsp;&nbsp;&nbsp;&nbsp;[^Settings&nbsp;settings]
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                039&nbsp;&nbsp;&nbsp;&nbsp;(loop&nbsp;[node&nbsp;(create-es-node&nbsp;settings)]
+                </span><br/>
+<span class="covered" title="5 out of 5 forms covered">
+                040&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if&nbsp;(instance?&nbsp;Node&nbsp;node)
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                041&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^Node&nbsp;node
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                042&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[http-port&nbsp;(Integer&#x2F;parseInt&nbsp;(.get&nbsp;settings&nbsp;&quot;http.port&quot;))
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                043&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^Map&nbsp;settings-map&nbsp;(HashMap.&nbsp;(.getAsMap&nbsp;settings))]
+                </span><br/>
+<span class="not-covered" title="0 out of 6 forms covered">
+                044&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;settings-map&nbsp;&quot;http.port&quot;&nbsp;(str&nbsp;(inc&nbsp;http-port)))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                045&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(recur
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                046&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(create-es-node
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                047&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(-&gt;&nbsp;(Settings&#x2F;builder)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                048&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(.put&nbsp;settings-map)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                049&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build)))))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                050&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                051&nbsp;&nbsp;(defn&nbsp;start
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                052&nbsp;&nbsp;&nbsp;&nbsp;[&amp;&nbsp;[cluster-name&nbsp;http-port]]
+                </span><br/>
+<span class="partial" title="6 out of 7 forms covered">
+                053&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[cluster-name&nbsp;(or&nbsp;cluster-name&nbsp;&quot;test-cluster&quot;)
+                </span><br/>
+<span class="partial" title="5 out of 6 forms covered">
+                054&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http-port&nbsp;(or&nbsp;http-port&nbsp;9200)
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                055&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tmp-data-dir&nbsp;(make-tmp-dir!&nbsp;cluster-name&nbsp;&quot;data&quot;)
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                056&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tmp-logs-dir&nbsp;(make-tmp-dir!&nbsp;cluster-name&nbsp;&quot;logs&quot;)
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                057&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tmp-home-dir&nbsp;(make-tmp-dir!&nbsp;cluster-name&nbsp;&quot;home&quot;)
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                058&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings&nbsp;(es-cluster-config
+                </span><br/>
+<span class="covered" title="7 out of 7 forms covered">
+                059&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{:cluster-name&nbsp;cluster-name
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                060&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:http-port&nbsp;http-port
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                061&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:tmp-data-dir&nbsp;tmp-data-dir
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                062&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:tmp-logs-dir&nbsp;tmp-logs-dir
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                063&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:tmp-home-dir&nbsp;tmp-home-dir})
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                064&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cluster&nbsp;(start-es-cluster&nbsp;settings)]
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                065&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cluster))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                066&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                067&nbsp;&nbsp;(defn&nbsp;stop
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                068&nbsp;&nbsp;&nbsp;&nbsp;[^Node&nbsp;cluster]
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                069&nbsp;&nbsp;&nbsp;&nbsp;(.close&nbsp;cluster))
+                </span><br/>
+ </body>
+</html>

@@ -1,7 +1,6 @@
 (ns org.clojars.punit-naik.in-memory-es
   (:require [clojure.java.io :as io])
-  (:import [java.util HashMap Map]
-           [org.elasticsearch.common.settings Settings]
+  (:import [org.elasticsearch.common.settings Settings]
            [org.elasticsearch.node Node]
            [org.elasticsearch.node NodeBuilder]))
 
@@ -16,6 +15,7 @@
 
 (defn es-cluster-config
   [{:keys [http-port tmp-data-dir tmp-logs-dir cluster-name tmp-home-dir]}]
+  ^Settings
   (-> (Settings/builder)
       (.put "http.port" http-port)
       (.put "path.data" tmp-data-dir)
@@ -40,13 +40,11 @@
     (if (instance? Node node)
       ^Node node
       (let [http-port (Integer/parseInt (.get settings "http.port"))
-            ^Map settings-map (HashMap. (.getAsMap settings))]
-        (.put settings-map "http.port" (str (inc http-port)))
+            ^Settings settings-builder (.builder settings)]
+        (.put settings-builder "http.port" (str (inc http-port)))
         (recur
          (create-es-node
-          (-> (Settings/builder)
-              (.put settings-map)
-              .build)))))))
+          (.build settings-builder)))))))
 
 (defn start
   [& [cluster-name http-port]]
@@ -55,15 +53,30 @@
         tmp-data-dir (make-tmp-dir! cluster-name "data")
         tmp-logs-dir (make-tmp-dir! cluster-name "logs")
         tmp-home-dir (make-tmp-dir! cluster-name "home")
-        settings (es-cluster-config
-                  {:cluster-name cluster-name
-                   :http-port http-port
-                   :tmp-data-dir tmp-data-dir
-                   :tmp-logs-dir tmp-logs-dir
-                   :tmp-home-dir tmp-home-dir})
+        ^Settings settings (es-cluster-config
+                            {:cluster-name cluster-name
+                             :http-port http-port
+                             :tmp-data-dir tmp-data-dir
+                             :tmp-logs-dir tmp-logs-dir
+                             :tmp-home-dir tmp-home-dir})
         cluster (start-es-cluster settings)]
     cluster))
 
+(defn delete-dir!
+  [f]
+  (when (.isDirectory f)
+    (doseq [f2 (.listFiles f)]
+      (delete-dir! f2)))
+  (when (.exists f)
+    (io/delete-file f)))
+
 (defn stop
   [^Node cluster]
-  (.close cluster))
+  (let [^Settings settings (.settings cluster)
+        tmp-data-dir (io/file (.get settings "path.data"))
+        tmp-logs-dir (io/file (.get settings "path.logs"))
+        tmp-home-dir (io/file (.get settings "path.home"))]
+    (.close cluster)
+    (delete-dir! tmp-data-dir)
+    (delete-dir! tmp-logs-dir)
+    (delete-dir! tmp-home-dir)))

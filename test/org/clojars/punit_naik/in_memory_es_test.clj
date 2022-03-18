@@ -93,7 +93,7 @@
     (is (= (.get settings "path.logs") tmp-logs-dir))
     (is (= (.get settings "path.home") tmp-home-dir))
     (is (= (.get settings "cluster.name") cluster-name))
-    (is (= (.get settings "http.port") http-port))
+    (is (= (.get settings "http.port") (str http-port)))
     (is (= (.get settings "index.number_of_shards") "1"))
     (is (= (.get settings "index.number_of_replicas") "0"))
     (is (= (.get settings "node.local") "true"))))

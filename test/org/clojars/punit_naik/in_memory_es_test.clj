@@ -1,5 +1,7 @@
 (ns org.clojars.punit-naik.in-memory-es-test
-  (:require [clojure.test :refer [deftest testing is use-fixtures]]
+  (:import [org.elasticsearch.common.settings Settings])
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer [deftest testing is use-fixtures]]
             [clojurewerkz.elastisch.rest :as esr]
             [clojurewerkz.elastisch.rest.document :as esd]
             [clojurewerkz.elastisch.rest.index :as esi]
@@ -63,6 +65,38 @@
   (let [{:keys [_id] doc :_source}
         (esd/get conn "test-index" "person" id)]
     (assoc doc :_id _id)))
+
+(deftest make-and-delete-dirs-test
+  (let [dir-1 (io/file (imes/make-tmp-dir! "test" "dir-1"))
+        dir-2 (io/file (imes/make-tmp-dir! "test" "dir-2"))]
+    (is (.isDirectory dir-1))
+    (is (.isDirectory dir-2))
+    (imes/delete-dir! dir-1)
+    (imes/delete-dir! dir-2)
+    (is (false? (.isDirectory dir-1)))
+    (is (false? (.isDirectory dir-2)))))
+
+(deftest es-cluster-config-test
+  (let [{:keys [http-port
+                tmp-data-dir
+                tmp-logs-dir
+                cluster-name
+                tmp-home-dir]
+         :as arg-map}
+        {:cluster-name "test"
+         :http-port 9200
+         :tmp-data-dir "/tmp-data-dir"
+         :tmp-logs-dir "/tmp-logs-dir"
+         :tmp-home-dir "/tmp-home-dir"}
+        ^Settings settings (imes/es-cluster-config arg-map)]
+    (is (= (.get settings "path.data") tmp-data-dir))
+    (is (= (.get settings "path.logs") tmp-logs-dir))
+    (is (= (.get settings "path.home") tmp-home-dir))
+    (is (= (.get settings "cluster.name") cluster-name))
+    (is (= (.get settings "http.port") http-port))
+    (is (= (.get settings "index.number_of_shards") "1"))
+    (is (= (.get settings "index.number_of_replicas") "0"))
+    (is (= (.get settings "node.local") "true"))))
 
 (deftest query-es-data-test
   (testing "Querying data created in the ES cluster during setup in fixture"
